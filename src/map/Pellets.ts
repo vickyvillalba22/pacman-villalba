@@ -1,0 +1,57 @@
+import type { Level } from '@/map/Level';
+import type { Position } from '@/types';
+
+const PELLET_TILE = 'dot';
+
+function keyOf(position: Position): string {
+  return `${position.x},${position.y}`;
+}
+
+function positionOf(key: string): Position {
+  const separator = key.indexOf(',');
+  return {
+    x: Number(key.slice(0, separator)),
+    y: Number(key.slice(separator + 1)),
+  };
+}
+
+export class Pellets {
+  readonly initialCount: number;
+
+  private readonly cells: Set<string>;
+
+  constructor(level: Level) {
+    this.cells = new Set();
+
+    for (let y = 0; y < level.size.height; y++) {
+      for (let x = 0; x < level.size.width; x++) {
+        const position = { x, y };
+        if (level.getTile(position) === PELLET_TILE) {
+          this.cells.add(keyOf(position));
+        }
+      }
+    }
+
+    this.initialCount = this.cells.size;
+  }
+
+  get count(): number {
+    return this.cells.size;
+  }
+
+  get isEmpty(): boolean {
+    return this.cells.size === 0;
+  }
+
+  contains(position: Position): boolean {
+    return this.cells.has(keyOf(position));
+  }
+
+  positions(): Position[] {
+    return Array.from(this.cells, (key) => positionOf(key));
+  }
+
+  remove(position: Position): void {
+    this.cells.delete(keyOf(position));
+  }
+}
