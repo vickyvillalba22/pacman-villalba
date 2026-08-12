@@ -7,6 +7,7 @@ import type { GhostType, Position, Size } from '@/types';
 const WALL_COLOR = '#0000ff';
 const EMPTY_COLOR = '#000000';
 const PELLET_COLOR = '#ffffff';
+const FRIGHTENED_BORDER_COLOR = '#00ff00';
 
 const GHOST_COLORS: Record<GhostType, string> = {
   blinky: '#ff0000',
@@ -87,7 +88,7 @@ export class DebugTileMapRenderer implements Renderer {
   }
 
   private drawGhost(ghost: Ghost, offsetX: number, offsetY: number, tileSize: number): void {
-    if (ghost.state !== 'active') return;
+    if (ghost.state === 'inactive') return;
 
     const center = this.tileCenter(ghost.position, offsetX, offsetY, tileSize);
     const r = tileSize * 0.4;
@@ -102,6 +103,12 @@ export class DebugTileMapRenderer implements Renderer {
     this.context.lineTo(center.x - r * 0.55, center.y + r);
     this.context.closePath();
     this.context.fill();
+
+    if (ghost.state === 'frightened') {
+      this.context.strokeStyle = FRIGHTENED_BORDER_COLOR;
+      this.context.lineWidth = Math.max(1, Math.floor(tileSize * 0.08));
+      this.context.stroke();
+    }
   }
 
   private tileCenter(

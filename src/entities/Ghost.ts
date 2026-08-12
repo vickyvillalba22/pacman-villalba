@@ -19,9 +19,21 @@ export class Ghost extends BaseEntity {
     this.ghostType = ghostType;
   }
 
-  override update(deltaTime: number): void {
+  setFrightened(): void {
+    this.state = 'frightened';
+  }
+
+  setActive(): void {
+    this.state = 'active';
+  }
+
+  setInactive(): void {
+    this.state = 'inactive';
+  }
+
+  override update(deltaTime: number, pacmanPosition?: Position): void {
     if (!this.isWalkableIn(this.direction)) {
-      this.direction = this.chooseDirection();
+      this.direction = this.chooseDirection(pacmanPosition);
     }
     super.update(deltaTime);
   }
@@ -40,7 +52,11 @@ export class Ghost extends BaseEntity {
     return this.level.isWalkable({ x: cell.x + delta.x, y: cell.y + delta.y });
   }
 
-  private chooseDirection(): Direction {
+  private chooseDirection(pacmanPosition?: Position): Direction {
+    if (this.state === 'frightened' && pacmanPosition) {
+      return this.chooseFrightenedDirection(pacmanPosition);
+    }
+
     const reverse = this.oppositeOf(this.direction);
     const alternatives = TURN_PRIORITY.filter(
       (direction) => direction !== reverse && this.isWalkableIn(direction),
@@ -50,6 +66,32 @@ export class Ghost extends BaseEntity {
     }
     const fallback = TURN_PRIORITY.find((direction) => this.isWalkableIn(direction));
     return fallback ?? this.direction;
+  }
+
+  private chooseFrightenedDirection(pacmanPosition: Position): Direction {
+    const candidates = TURN_PRIORITY.filter((direction) => this.isWalkableIn(direction));
+    if (candidates.length === 0) {
+      return this.direction;
+    }
+
+    let best = candidates[0];
+    let bestDistance = this.distanceFrom(pacmanPosition, best);
+    for (let i = 1; i < candidates.length; i++) {
+      const distance = this.distanceFrom(pacmanPosition, candidates[i]);
+      if (distance > bestDistance) {
+        best = candidates[i];
+        bestDistance = distance;
+      }
+    }
+    return best;
+  }
+
+  private distanceFrom(pacmanPosition: Position, direction: Direction): number {
+    const cell = this.cellOf(this.position);
+    const delta = this.directionVector(direction);
+    const candidate = { x: cell.x + delta.x, y: cell.y + delta.y };
+    const pacmanCell = this.cellOf(pacmanPosition);
+    return Math.abs(candidate.x - pacmanCell.x) + Math.abs(candidate.y - pacmanCell.y);
   }
 
   private oppositeOf(direction: Direction): Direction {

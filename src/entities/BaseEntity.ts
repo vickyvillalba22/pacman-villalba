@@ -30,7 +30,7 @@ export abstract class BaseEntity implements GameEntity {
   }
 
   update(deltaTime: number): void {
-    if (this.state !== 'active' || this.speed === 0) return;
+    if (this.state === 'inactive' || this.speed === 0) return;
     this.applyMovement(deltaTime);
   }
 

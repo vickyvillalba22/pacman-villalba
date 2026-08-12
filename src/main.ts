@@ -18,6 +18,7 @@ import { PlayingState } from '@/game/states/PlayingState';
 import { WaitingForPlayerState } from '@/game/states/WaitingForPlayerState';
 import { parseTileMap } from '@/map/parseTileMap';
 import { Pellets } from '@/map/Pellets';
+import { PowerPellets } from '@/map/PowerPellets';
 import { DebugTileMapRenderer } from '@/renderer/DebugTileMapRenderer';
 import { setupCanvas } from '@/renderer/canvas';
 import type { GameState, SpawnConfig } from '@/types';
@@ -39,7 +40,7 @@ const spawnConfig: SpawnConfig = {
   clyde: { position: { x: 9, y: 4 }, direction: 'left' },
 };
 
-const world = new GameWorld(level, new Pellets(level), spawnConfig);
+const world = new GameWorld(level, new Pellets(level), new PowerPellets(level), spawnConfig);
 const renderer = new DebugTileMapRenderer(level, world, context);
 
 const states: Record<GameState, State> = {

@@ -9,6 +9,9 @@ export class Pacman extends BaseEntity {
   lives: number;
   requestedDirection: Direction;
 
+  private readonly spawnPosition: Position;
+  private readonly spawnDirection: Direction;
+
   constructor(
     position: Position,
     direction: Direction,
@@ -21,6 +24,21 @@ export class Pacman extends BaseEntity {
     super('pacman', position, direction, state, speed);
     this.requestedDirection = requestedDirection;
     this.lives = lives;
+    this.spawnPosition = { x: position.x, y: position.y };
+    this.spawnDirection = direction;
+  }
+
+  loseLife(): void {
+    if (this.lives > 0) {
+      this.lives -= 1;
+    }
+  }
+
+  respawn(): void {
+    this.position = { x: this.spawnPosition.x, y: this.spawnPosition.y };
+    this.direction = this.spawnDirection;
+    this.requestedDirection = this.spawnDirection;
+    this.state = 'active';
   }
 
   override update(deltaTime: number): void {

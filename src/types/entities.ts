@@ -4,7 +4,7 @@ export type EntityType = 'pacman' | 'ghost';
 
 export type GhostType = 'blinky' | 'pinky' | 'inky' | 'clyde';
 
-export type EntityState = 'active' | 'inactive';
+export type EntityState = 'active' | 'frightened' | 'inactive';
 
 export interface EntitySpawn {
   position: Position;
