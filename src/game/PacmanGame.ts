@@ -21,6 +21,9 @@ export class PacmanGame implements GameEngine {
       this.world.pacman.requestedDirection = requestedDirection;
     }
     this.world.update(deltaTime);
+    if (this.world.lives === 0) {
+      this.stateMachine.changeState('gameOver');
+    }
     this.stateMachine.update(deltaTime);
     this.renderer.render();
   }

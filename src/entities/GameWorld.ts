@@ -89,7 +89,9 @@ export class GameWorld {
 
     if (result?.type === 'dangerous') {
       this.loseLife();
-      this.pacman.respawn();
+      if (this.lives > 0) {
+        this.pacman.respawn();
+      }
     }
   }
 
