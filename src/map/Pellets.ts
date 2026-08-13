@@ -19,6 +19,7 @@ export class Pellets {
   readonly initialCount: number;
 
   private readonly cells: Set<string>;
+  private readonly initialCells: Set<string>;
 
   constructor(level: Level) {
     this.cells = new Set();
@@ -33,6 +34,7 @@ export class Pellets {
     }
 
     this.initialCount = this.cells.size;
+    this.initialCells = new Set(this.cells);
   }
 
   get count(): number {
@@ -53,5 +55,12 @@ export class Pellets {
 
   remove(position: Position): void {
     this.cells.delete(keyOf(position));
+  }
+
+  reset(): void {
+    this.cells.clear();
+    for (const cell of this.initialCells) {
+      this.cells.add(cell);
+    }
   }
 }

@@ -6,6 +6,7 @@ import { GameWorld } from '@/entities/GameWorld';
 import { GameLoop } from '@/game/GameLoop';
 import { KeyboardInput } from '@/input/KeyboardInput';
 import { GameStateMachine } from '@/game/GameStateMachine';
+import type { StateMachine } from '@/game/GameStateMachine';
 import { PacmanGame } from '@/game/PacmanGame';
 import type { State } from '@/game/State';
 import { AttractModeState } from '@/game/states/AttractModeState';
@@ -54,9 +55,10 @@ const states: Record<GameState, State> = {
   gameOver: new GameOverState(),
 };
 
-const stateMachine = new GameStateMachine(states);
 const input = new KeyboardInput();
-const engine = new PacmanGame(stateMachine, renderer, world, input);
+const engine = new PacmanGame(null as unknown as StateMachine, renderer, world, input);
+const stateMachine = new GameStateMachine(states, engine);
+engine.setStateMachine(stateMachine);
 const loop = new GameLoop(engine);
 
 async function bootstrap(): Promise<void> {

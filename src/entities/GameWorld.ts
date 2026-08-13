@@ -67,6 +67,16 @@ export class GameWorld {
     this._score += points;
   }
 
+  reset(): void {
+    this.pellets.reset();
+    this.powerPellets.reset();
+    this.pacman.respawn();
+    for (const ghost of this.ghosts) {
+      ghost.respawn();
+    }
+    this.frightenedTimer = 0;
+  }
+
   update(deltaTime: number): void {
     this.pacman.update(deltaTime);
     this.consumePellet();

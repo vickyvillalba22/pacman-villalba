@@ -6,12 +6,20 @@ import type { Renderer } from '@/renderer/Renderer';
 import type { Direction } from '@/types';
 
 export class PacmanGame implements GameEngine {
+  private stateMachine: StateMachine;
+
   constructor(
-    private readonly stateMachine: StateMachine,
+    stateMachine: StateMachine,
     private readonly renderer: Renderer,
     private readonly world: GameWorld,
     private readonly input: InputProvider,
-  ) {}
+  ) {
+    this.stateMachine = stateMachine;
+  }
+
+  setStateMachine(stateMachine: StateMachine): void {
+    this.stateMachine = stateMachine;
+  }
 
   async init(): Promise<void> {}
 
@@ -23,6 +31,8 @@ export class PacmanGame implements GameEngine {
     this.world.update(deltaTime);
     if (this.world.lives === 0) {
       this.stateMachine.changeState('gameOver');
+    } else if (this.world.pellets.isEmpty) {
+      this.stateMachine.changeState('levelCompleted');
     }
     this.stateMachine.update(deltaTime);
     this.renderer.render();
@@ -32,7 +42,9 @@ export class PacmanGame implements GameEngine {
 
   stop(): void {}
 
-  reset(): void {}
+  reset(): void {
+    this.world.reset();
+  }
 
   private readRequestedDirection(): Direction | undefined {
     if (this.input.isPressed('moveUp')) return 'up';

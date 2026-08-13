@@ -6,7 +6,10 @@ export class LevelCompletedState implements State {
 
   enter(_context: StateContext): void {}
 
-  update(_deltaTime: number, _context: StateContext): void {}
+  update(_deltaTime: number, context: StateContext): void {
+    context.reset();
+    context.changeState('playing');
+  }
 
   exit(): void {}
 }

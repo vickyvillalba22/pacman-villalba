@@ -2,6 +2,7 @@ import type { GameState } from '@/types';
 
 export interface StateContext {
   changeState(state: GameState): void;
+  reset(): void;
 }
 
 export interface State {

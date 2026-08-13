@@ -7,6 +7,9 @@ const TURN_PRIORITY: Direction[] = ['up', 'left', 'down', 'right'];
 export class Ghost extends BaseEntity {
   readonly ghostType: GhostType;
 
+  private readonly spawnPosition: Position;
+  private readonly spawnDirection: Direction;
+
   constructor(
     position: Position,
     direction: Direction,
@@ -17,6 +20,14 @@ export class Ghost extends BaseEntity {
   ) {
     super('ghost', position, direction, state, speed);
     this.ghostType = ghostType;
+    this.spawnPosition = { x: position.x, y: position.y };
+    this.spawnDirection = direction;
+  }
+
+  respawn(): void {
+    this.position = { x: this.spawnPosition.x, y: this.spawnPosition.y };
+    this.direction = this.spawnDirection;
+    this.state = 'active';
   }
 
   setFrightened(): void {
