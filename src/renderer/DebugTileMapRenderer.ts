@@ -1,6 +1,7 @@
 import type { GameWorld } from '@/entities/GameWorld';
 import type { Ghost } from '@/entities/Ghost';
 import type { Level } from '@/map/Level';
+import type { StateMachine } from '@/game/GameStateMachine';
 import type { Renderer } from '@/renderer/Renderer';
 import type { GhostType, Position, Size } from '@/types';
 
@@ -17,17 +18,40 @@ const GHOST_COLORS: Record<GhostType, string> = {
 };
 
 export class DebugTileMapRenderer implements Renderer {
+  private stateMachine: StateMachine | null = null;
+  private previousState: string | null = null;
+  private previousLives: number = 0;
+  private eventMessage: string | null = null;
+
   constructor(
     private readonly level: Level,
     private readonly world: GameWorld,
     private readonly context: CanvasRenderingContext2D,
-  ) {}
+  ) {
+    this.previousLives = world.lives;
+  }
+
+  setStateMachine(stateMachine: StateMachine): void {
+    this.stateMachine = stateMachine;
+  }
 
   resize(_size: Size): void {}
 
   clear(): void {}
 
   render(): void {
+    this.detectEvents();
+
+    if (this.stateMachine?.currentState === 'gameOver') {
+      this.drawGameOverScreen();
+      return;
+    }
+
+    if (this.stateMachine?.currentState === 'levelCompleted') {
+      this.drawLevelCompletedScreen();
+      return;
+    }
+
     const { canvas } = this.context;
     const { width, height } = this.level.size;
 
@@ -56,6 +80,12 @@ export class DebugTileMapRenderer implements Renderer {
     for (const ghost of this.world.ghosts) {
       this.drawGhost(ghost, offsetX, offsetY, tileSize);
     }
+
+    this.drawState();
+    this.drawLives();
+    this.drawScore();
+    this.drawPelletsCount();
+    this.drawEventMessage();
   }
 
   private drawPellets(offsetX: number, offsetY: number, tileSize: number): void {
@@ -121,5 +151,93 @@ export class DebugTileMapRenderer implements Renderer {
       x: offsetX + position.x * tileSize + tileSize / 2,
       y: offsetY + position.y * tileSize + tileSize / 2,
     };
+  }
+
+  private drawState(): void {
+    if (!this.stateMachine) return;
+    this.context.fillStyle = '#00ff00';
+    this.context.font = '14px monospace';
+    this.context.fillText(`STATE: ${this.stateMachine.currentState.toUpperCase()}`, 10, 20);
+  }
+
+  private drawLives(): void {
+    this.context.fillStyle = '#00ff00';
+    this.context.font = '14px monospace';
+    this.context.fillText(`LIVES: ${this.world.lives}`, 10, 40);
+  }
+
+  private drawScore(): void {
+    this.context.fillStyle = '#00ff00';
+    this.context.font = '14px monospace';
+    this.context.fillText(`SCORE: ${this.world.score}`, 10, 60);
+  }
+
+  private drawPelletsCount(): void {
+    this.context.fillStyle = '#00ff00';
+    this.context.font = '14px monospace';
+    this.context.fillText(`PELLETS: ${this.world.pellets.count}`, 10, 80);
+  }
+
+  private detectEvents(): void {
+    if (!this.stateMachine) return;
+
+    const currentState = this.stateMachine.currentState;
+    const currentLives = this.world.lives;
+
+    if (currentState !== this.previousState) {
+      if (this.previousState === 'waitingForPlayer' && currentState === 'playing') {
+        this.eventMessage = 'INICIO DE PARTIDA';
+      } else if (currentState === 'gameOver') {
+        this.eventMessage = 'GAME OVER';
+      } else if (currentState === 'levelCompleted') {
+        this.eventMessage = 'LEVEL COMPLETED';
+      } else if (this.previousState === 'levelCompleted' && currentState === 'playing') {
+        this.eventMessage = 'REINICIO DEL NIVEL';
+      }
+      this.previousState = currentState;
+    }
+
+    if (currentLives < this.previousLives) {
+      this.eventMessage = 'PERDIDA DE VIDA';
+    }
+    this.previousLives = currentLives;
+  }
+
+  private drawEventMessage(): void {
+    if (!this.eventMessage) return;
+    const { canvas } = this.context;
+    this.context.fillStyle = '#ffff00';
+    this.context.font = 'bold 24px monospace';
+    this.context.textAlign = 'center';
+    this.context.fillText(this.eventMessage, canvas.width / 2, canvas.height / 2);
+    this.context.textAlign = 'left';
+  }
+
+  private drawGameOverScreen(): void {
+    const { canvas } = this.context;
+    this.context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    this.context.fillRect(0, 0, canvas.width, canvas.height);
+    this.context.fillStyle = '#ff0000';
+    this.context.font = 'bold 36px monospace';
+    this.context.textAlign = 'center';
+    this.context.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 30);
+    this.context.fillStyle = '#ffffff';
+    this.context.font = '20px monospace';
+    this.context.fillText('CLICK TO RESTART', canvas.width / 2, canvas.height / 2 + 20);
+    this.context.textAlign = 'left';
+  }
+
+  private drawLevelCompletedScreen(): void {
+    const { canvas } = this.context;
+    this.context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    this.context.fillRect(0, 0, canvas.width, canvas.height);
+    this.context.fillStyle = '#00ff00';
+    this.context.font = 'bold 36px monospace';
+    this.context.textAlign = 'center';
+    this.context.fillText('YOU WON!', canvas.width / 2, canvas.height / 2 - 30);
+    this.context.fillStyle = '#ffffff';
+    this.context.font = '20px monospace';
+    this.context.fillText('CLICK TO PLAY AGAIN', canvas.width / 2, canvas.height / 2 + 20);
+    this.context.textAlign = 'left';
   }
 }

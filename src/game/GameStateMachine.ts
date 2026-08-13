@@ -5,6 +5,7 @@ import type { GameState } from '@/types';
 export interface StateMachine {
   update(deltaTime: number): void;
   changeState(state: GameState): void;
+  currentState: GameState;
 }
 
 export class GameStateMachine implements StateMachine, StateContext {
@@ -35,5 +36,9 @@ export class GameStateMachine implements StateMachine, StateContext {
 
   update(deltaTime: number): void {
     this.current.update(deltaTime, this);
+  }
+
+  get currentState(): GameState {
+    return this.current.id;
   }
 }

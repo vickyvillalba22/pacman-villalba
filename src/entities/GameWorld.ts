@@ -70,11 +70,12 @@ export class GameWorld {
   reset(): void {
     this.pellets.reset();
     this.powerPellets.reset();
-    this.pacman.respawn();
+    this.pacman.fullRespawn();
     for (const ghost of this.ghosts) {
       ghost.respawn();
     }
     this.frightenedTimer = 0;
+    this._score = 0;
   }
 
   update(deltaTime: number): void {
@@ -101,6 +102,10 @@ export class GameWorld {
       this.loseLife();
       if (this.lives > 0) {
         this.pacman.respawn();
+        this.frightenedTimer = 0;
+        for (const ghost of this.ghosts) {
+          ghost.respawn();
+        }
       }
     }
   }

@@ -34,7 +34,7 @@ const { context } = setupCanvas(canvas);
 const level = parseTileMap(demoMapSource);
 
 const spawnConfig: SpawnConfig = {
-  pacman: { position: { x: 7, y: 6 }, direction: 'left' },
+  pacman: { position: { x: 7.5, y: 6.5 }, direction: 'left' },
   blinky: { position: { x: 7, y: 2 }, direction: 'left' },
   pinky: { position: { x: 7, y: 4 }, direction: 'left' },
   inky: { position: { x: 5, y: 4 }, direction: 'left' },
@@ -59,7 +59,15 @@ const input = new KeyboardInput();
 const engine = new PacmanGame(null as unknown as StateMachine, renderer, world, input);
 const stateMachine = new GameStateMachine(states, engine);
 engine.setStateMachine(stateMachine);
+renderer.setStateMachine(stateMachine);
 const loop = new GameLoop(engine);
+
+canvas.addEventListener('click', () => {
+  if (stateMachine.currentState === 'gameOver' || stateMachine.currentState === 'levelCompleted') {
+    engine.reset();
+    stateMachine.changeState('playing');
+  }
+});
 
 async function bootstrap(): Promise<void> {
   await engine.init();

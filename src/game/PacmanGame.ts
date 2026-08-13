@@ -7,6 +7,7 @@ import type { Direction } from '@/types';
 
 export class PacmanGame implements GameEngine {
   private stateMachine: StateMachine;
+  private stopped = false;
 
   constructor(
     stateMachine: StateMachine,
@@ -24,12 +25,18 @@ export class PacmanGame implements GameEngine {
   async init(): Promise<void> {}
 
   update(deltaTime: number): void {
+    if (this.stopped) {
+      this.renderer.render();
+      return;
+    }
+
     const requestedDirection = this.readRequestedDirection();
     if (requestedDirection) {
       this.world.pacman.requestedDirection = requestedDirection;
     }
     this.world.update(deltaTime);
     if (this.world.lives === 0) {
+      this.stopped = true;
       this.stateMachine.changeState('gameOver');
     } else if (this.world.pellets.isEmpty) {
       this.stateMachine.changeState('levelCompleted');
@@ -44,6 +51,11 @@ export class PacmanGame implements GameEngine {
 
   reset(): void {
     this.world.reset();
+    this.stopped = false;
+  }
+
+  isGameOver(): boolean {
+    return this.stopped;
   }
 
   private readRequestedDirection(): Direction | undefined {

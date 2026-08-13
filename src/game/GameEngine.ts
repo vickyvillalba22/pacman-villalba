@@ -4,4 +4,5 @@ export interface GameEngine {
   start(): void;
   stop(): void;
   reset(): void;
+  isGameOver(): boolean;
 }

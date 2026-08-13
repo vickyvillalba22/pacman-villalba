@@ -3,7 +3,7 @@ import type { Level } from '@/map/Level';
 import type { Direction, EntityState, Position } from '@/types';
 
 const BODY_RADIUS = 0.4;
-const TURN_ALIGNMENT = 0.1;
+const TURN_ALIGNMENT = 0.4;
 
 export class Pacman extends BaseEntity {
   lives: number;
@@ -11,6 +11,7 @@ export class Pacman extends BaseEntity {
 
   private readonly spawnPosition: Position;
   private readonly spawnDirection: Direction;
+  private readonly spawnLives: number;
 
   constructor(
     position: Position,
@@ -26,6 +27,7 @@ export class Pacman extends BaseEntity {
     this.lives = lives;
     this.spawnPosition = { x: position.x, y: position.y };
     this.spawnDirection = direction;
+    this.spawnLives = lives;
   }
 
   loseLife(): void {
@@ -39,6 +41,11 @@ export class Pacman extends BaseEntity {
     this.direction = this.spawnDirection;
     this.requestedDirection = this.spawnDirection;
     this.state = 'active';
+  }
+
+  fullRespawn(): void {
+    this.respawn();
+    this.lives = this.spawnLives;
   }
 
   override update(deltaTime: number): void {
