@@ -42,8 +42,38 @@ export class Ghost extends BaseEntity {
     this.state = 'inactive';
   }
 
+  private isCentered(): boolean {
+    return (
+      this.position.x === Math.floor(this.position.x) &&
+      this.position.y === Math.floor(this.position.y)
+    );
+  }
+
+  private isNextCellIntersection(): boolean {
+    const reverse = this.oppositeOf(this.direction);
+    let walkableCount = 0;
+    for (const dir of TURN_PRIORITY) {
+      if (dir !== reverse && this.isWalkableIn(dir)) {
+        walkableCount++;
+      }
+    }
+    return walkableCount > 1;
+  }
+
+  private _lastIntersectionCell: Position | null = null;
+
   override update(deltaTime: number, pacmanPosition?: Position): void {
-    if (!this.isWalkableIn(this.direction)) {
+    if (this.isCentered() && this.isNextCellIntersection()) {
+      const cell = this.cellOf(this.position);
+      if (
+        !this._lastIntersectionCell ||
+        cell.x !== this._lastIntersectionCell.x ||
+        cell.y !== this._lastIntersectionCell.y
+      ) {
+        this._lastIntersectionCell = { x: cell.x, y: cell.y };
+        this.direction = this.chooseDirection(pacmanPosition);
+      }
+    } else if (!this.isWalkableIn(this.direction)) {
       this.direction = this.chooseDirection(pacmanPosition);
     }
     super.update(deltaTime);
