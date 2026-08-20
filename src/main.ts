@@ -34,7 +34,7 @@ const { context } = setupCanvas(canvas);
 const level = parseTileMap(demoMapSource);
 
 const spawnConfig: SpawnConfig = {
-  pacman: { position: { x: 7.5, y: 6.5 }, direction: 'left' },
+  pacman: { position: { x: 1.5, y: 2.5 }, direction: 'right' },
   blinky: { position: { x: 7, y: 2 }, direction: 'left' },
   pinky: { position: { x: 7, y: 4 }, direction: 'left' },
   inky: { position: { x: 5, y: 4 }, direction: 'left' },

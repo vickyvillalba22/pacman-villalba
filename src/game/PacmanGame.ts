@@ -31,9 +31,7 @@ export class PacmanGame implements GameEngine {
     }
 
     const requestedDirection = this.readRequestedDirection();
-    if (requestedDirection) {
-      this.world.pacman.requestedDirection = requestedDirection;
-    }
+    this.world.pacman.requestedDirection = requestedDirection;
     this.world.update(deltaTime);
     if (this.world.lives === 0) {
       this.stopped = true;

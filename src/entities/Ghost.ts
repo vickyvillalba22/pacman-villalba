@@ -3,6 +3,7 @@ import type { Level } from '@/map/Level';
 import type { Direction, EntityState, GhostType, Position } from '@/types';
 
 const TURN_PRIORITY: Direction[] = ['up', 'left', 'down', 'right'];
+const BODY_RADIUS = 0.35;
 
 export class Ghost extends BaseEntity {
   readonly ghostType: GhostType;
@@ -81,10 +82,61 @@ export class Ghost extends BaseEntity {
 
   protected override applyMovement(deltaTime: number): void {
     const next = this.nextPosition(deltaTime);
-    if (!this.level.isWalkable(this.cellOf(next))) {
+    if (!this.isBodyClear(next)) {
+      this.snapToWall();
       return;
     }
     super.applyMovement(deltaTime);
+  }
+
+  private isBodyClear(next: Position): boolean {
+    const delta = this.directionVector(this.direction);
+    const edge = {
+      x: next.x + delta.x * BODY_RADIUS,
+      y: next.y + delta.y * BODY_RADIUS,
+    };
+    if (!this.level.isWalkable(this.cellOf(edge))) return false;
+    const perpendiculars = this.getPerpendicularDirections(this.direction);
+    for (const perp of perpendiculars) {
+      const perpDelta = this.directionVector(perp);
+      const corners = [
+        { x: next.x + perpDelta.x * BODY_RADIUS, y: next.y + perpDelta.y * BODY_RADIUS },
+        { x: next.x - perpDelta.x * BODY_RADIUS, y: next.y - perpDelta.y * BODY_RADIUS },
+      ];
+      for (const corner of corners) {
+        if (!this.level.isWalkable(this.cellOf(corner))) return false;
+      }
+    }
+    return true;
+  }
+
+  private snapToWall(): void {
+    const epsilon = 1e-6;
+    switch (this.direction) {
+      case 'up':
+        this.position.y = Math.floor(this.position.y) + BODY_RADIUS + epsilon;
+        break;
+      case 'down':
+        this.position.y = Math.floor(this.position.y) + 1 - BODY_RADIUS - epsilon;
+        break;
+      case 'left':
+        this.position.x = Math.floor(this.position.x) + BODY_RADIUS + epsilon;
+        break;
+      case 'right':
+        this.position.x = Math.floor(this.position.x) + 1 - BODY_RADIUS - epsilon;
+        break;
+    }
+  }
+
+  private getPerpendicularDirections(direction: Direction): Direction[] {
+    switch (direction) {
+      case 'up':
+      case 'down':
+        return ['left', 'right'];
+      case 'left':
+      case 'right':
+        return ['up', 'down'];
+    }
   }
 
   private isWalkableIn(direction: Direction): boolean {

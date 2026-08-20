@@ -8,6 +8,7 @@ import type { GhostType, Position, Size } from '@/types';
 const WALL_COLOR = '#0000ff';
 const EMPTY_COLOR = '#000000';
 const PELLET_COLOR = '#ffffff';
+const WALKABLE_BORDER_COLOR = '#ffff00';
 const FRIGHTENED_BORDER_COLOR = '#00ff00';
 
 const GHOST_COLORS: Record<GhostType, string> = {
@@ -72,9 +73,20 @@ export class DebugTileMapRenderer implements Renderer {
         const isWall = this.level.getTile({ x, y }) === 'wall';
         this.context.fillStyle = isWall ? WALL_COLOR : EMPTY_COLOR;
         this.context.fillRect(offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize);
+        if (isWall) {
+          this.context.strokeStyle = '#ff0000';
+          this.context.lineWidth = 2;
+          this.context.strokeRect(
+            offsetX + x * tileSize + 1,
+            offsetY + y * tileSize + 1,
+            tileSize - 2,
+            tileSize - 2,
+          );
+        }
       }
     }
 
+    this.drawWalkableBorders(offsetX, offsetY, tileSize);
     this.drawPellets(offsetX, offsetY, tileSize);
     this.drawPacman(offsetX, offsetY, tileSize);
     for (const ghost of this.world.ghosts) {
@@ -86,6 +98,52 @@ export class DebugTileMapRenderer implements Renderer {
     this.drawScore();
     this.drawPelletsCount();
     this.drawEventMessage();
+  }
+
+  private drawWalkableBorders(offsetX: number, offsetY: number, tileSize: number): void {
+    const { width, height } = this.level.size;
+
+    this.context.strokeStyle = WALKABLE_BORDER_COLOR;
+    this.context.lineWidth = 2;
+    this.context.beginPath();
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (!this.level.isWalkable({ x, y })) continue;
+
+        const left = offsetX + x * tileSize;
+        const top = offsetY + y * tileSize;
+        const right = left + tileSize;
+        const bottom = top + tileSize;
+
+        if (this.isWall({ x, y: y - 1 })) {
+          this.context.moveTo(left, top);
+          this.context.lineTo(right, top);
+        }
+        if (this.isWall({ x, y: y + 1 })) {
+          this.context.moveTo(left, bottom);
+          this.context.lineTo(right, bottom);
+        }
+        if (this.isWall({ x: x - 1, y })) {
+          this.context.moveTo(left, top);
+          this.context.lineTo(left, bottom);
+        }
+        if (this.isWall({ x: x + 1, y })) {
+          this.context.moveTo(right, top);
+          this.context.lineTo(right, bottom);
+        }
+      }
+    }
+
+    this.context.stroke();
+  }
+
+  private isWall(position: Position): boolean {
+    const { width, height } = this.level.size;
+    if (position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) {
+      return false;
+    }
+    return !this.level.isWalkable(position);
   }
 
   private drawPellets(offsetX: number, offsetY: number, tileSize: number): void {
@@ -115,6 +173,16 @@ export class DebugTileMapRenderer implements Renderer {
     this.context.lineWidth = Math.max(1, Math.floor(tileSize * 0.06));
     this.context.strokeStyle = '#000000';
     this.context.stroke();
+
+    this.context.strokeStyle = '#00ff00';
+    this.context.lineWidth = 1;
+    const bodyRadius = tileSize * 0.35;
+    this.context.strokeRect(
+      center.x - bodyRadius,
+      center.y - bodyRadius,
+      bodyRadius * 2,
+      bodyRadius * 2,
+    );
   }
 
   private drawGhost(ghost: Ghost, offsetX: number, offsetY: number, tileSize: number): void {
@@ -133,6 +201,16 @@ export class DebugTileMapRenderer implements Renderer {
     this.context.lineTo(center.x - r * 0.55, center.y + r);
     this.context.closePath();
     this.context.fill();
+
+    this.context.strokeStyle = '#ffffff';
+    this.context.lineWidth = 1;
+    const bodyRadius = tileSize * 0.35;
+    this.context.strokeRect(
+      center.x - bodyRadius,
+      center.y - bodyRadius,
+      bodyRadius * 2,
+      bodyRadius * 2,
+    );
 
     if (ghost.state === 'frightened') {
       this.context.strokeStyle = FRIGHTENED_BORDER_COLOR;
